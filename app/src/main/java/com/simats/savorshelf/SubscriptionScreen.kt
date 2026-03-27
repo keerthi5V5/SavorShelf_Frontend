@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +23,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,8 +33,7 @@ import android.widget.Toast
 import com.android.billingclient.api.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.core.content.pm.PackageInfoCompat
 
 @Composable
 fun SubscriptionScreen(
@@ -347,7 +344,7 @@ fun SubscriptionScreen(
     }
 }
 
-private const val SUBSCRIPTION_SKU = "univault_premium_subscription"
+private const val SUBSCRIPTION_SKU = "savorshelf_premium_subscription"
 private const val TEST_SUBSCRIPTION_SKU = "android.test.purchased"
 
 private fun logDebugInformation(context: Context) {
@@ -355,7 +352,8 @@ private fun logDebugInformation(context: Context) {
     Log.d("SubscriptionScreen", "Package name: ${context.packageName}")
     try {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        Log.d("SubscriptionScreen", "Version code: ${packageInfo.longVersionCode}")
+        val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
+        Log.d("SubscriptionScreen", "Version code: $versionCode")
         Log.d("SubscriptionScreen", "Version name: ${packageInfo.versionName}")
     } catch (e: Exception) {
         Log.w("SubscriptionScreen", "Unable to get package info: ${e.message}")
