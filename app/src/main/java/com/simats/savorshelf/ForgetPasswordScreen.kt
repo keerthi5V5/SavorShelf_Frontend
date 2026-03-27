@@ -182,8 +182,8 @@ fun ForgetPasswordScreen(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
                         cursorColor = primaryColor,
-                        focusedTextColor = darkTextColor,
-                        unfocusedTextColor = darkTextColor
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
@@ -441,8 +441,8 @@ fun VerifyOtpScreen(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
                         cursorColor = primaryColor,
-                        focusedTextColor = darkTextColor,
-                        unfocusedTextColor = darkTextColor
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -700,8 +700,8 @@ fun ResetPasswordScreen(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
                         cursorColor = primaryColor,
-                        focusedTextColor = darkTextColor,
-                        unfocusedTextColor = darkTextColor
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -755,8 +755,8 @@ fun ResetPasswordScreen(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
                         cursorColor = primaryColor,
-                        focusedTextColor = darkTextColor,
-                        unfocusedTextColor = darkTextColor
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)

@@ -166,8 +166,8 @@ fun LoginScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         cursorColor = darkGreenColor,
-                        focusedTextColor = darkGreenColor,
-                        unfocusedTextColor = darkGreenColor
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
@@ -213,8 +213,8 @@ fun LoginScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         cursorColor = darkGreenColor,
-                        focusedTextColor = darkGreenColor,
-                        unfocusedTextColor = darkGreenColor
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,

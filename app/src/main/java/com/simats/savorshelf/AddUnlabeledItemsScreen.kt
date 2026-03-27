@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import kotlinx.coroutines.launch
 import com.simats.savorshelf.api.RetrofitClient
 import com.simats.savorshelf.api.AddUnlabeledProductRequest
@@ -36,21 +38,24 @@ fun AddUnlabeledItemsScreen(
     val bgColor = Color(0xFFF8FAFB)
     val primaryGreen = Color(0xFF0D614E)
     val accentGreen = Color(0xFF1CB089)
-    val textPrimary = Color(0xFF141D1C) // Darker for deep contrast
-    val textSecondary = Color(0xFF5A6D66) // Darker than original grey
+    val textPrimary = Color(0xFF141D1C)
+    val textSecondary = Color(0xFF5A6D66)
 
+    // Local states
+    val selectedProductState = remember { mutableStateOf<Pair<String, String>?>(null) }
+    val customNameState = remember { mutableStateOf("") }
+    val purchaseDateState = remember { mutableStateOf("") }
+    val quantityState = remember { mutableStateOf("") }
+    val selectedStorageState = remember { mutableStateOf("Room Temperature") }
 
     var expanded by remember { mutableStateOf(false) }
-    var selectedProduct by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var customName by remember { mutableStateOf("") }
-    var purchaseDate by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
+    var searchProductText by remember { mutableStateOf("") }
+    val searchFocusRequester = remember { FocusRequester() }
     
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
     
     val storageTypes = listOf("Room Temperature", "Freezer", "Fridge")
-    var selectedStorage by remember { mutableStateOf(storageTypes[0]) }
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -265,299 +270,331 @@ fun AddUnlabeledItemsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Main Form Card
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = Color.White,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text(
-                        text = "Item Specification",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textPrimary
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Select Product Dropdown
-                    CustomLabel("Select Product")
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = it },
+                    // Main Form Card
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        OutlinedTextField(
-                            value = selectedProduct?.first ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            placeholder = { Text("Search or select item", color = textSecondary.copy(alpha = 0.6f)) },
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            Text(
+                                text = "Item Specification",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textPrimary
+                            )
+                            Spacer(modifier = Modifier.height(20.dp))
 
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = Color(0xFFF9FBFA),
-                                focusedContainerColor = Color.White,
-                                unfocusedBorderColor = Color(0xFFE5EBE8),
-                                focusedBorderColor = primaryGreen
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier.background(Color.White)
-                        ) {
-                            var searchProductText by remember { mutableStateOf("") }
-                            
+                            // Select Product Dropdown
+                            CustomLabel("Select Product")
+                            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                                val anchorWidth = maxWidth
+                                Box {
+                                    OutlinedTextField(
+                                        value = selectedProductState.value?.first ?: "",
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        placeholder = { Text("Search or select item", color = textSecondary.copy(alpha = 0.6f)) },
+                                        trailingIcon = { 
+                                            Icon(
+                                                imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                                                contentDescription = null,
+                                                modifier = Modifier.clickable { expanded = !expanded }
+                                            )
+                                        },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            unfocusedContainerColor = Color(0xFFF9FBFA),
+                                            focusedContainerColor = Color.White,
+                                            unfocusedBorderColor = Color(0xFFE5EBE8),
+                                            focusedBorderColor = primaryGreen,
+                                            focusedTextColor = Color.Black,
+                                            unfocusedTextColor = Color.Black
+                                        ),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }
+                                    )
+
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                        modifier = Modifier
+                                            .width(anchorWidth)
+                                            .background(Color.White)
+                                    ) {
+                                        LaunchedEffect(expanded) {
+                                            if (expanded) {
+                                                searchFocusRequester.requestFocus()
+                                            }
+                                        }
+
+                                        OutlinedTextField(
+                                            value = searchProductText,
+                                            onValueChange = { searchProductText = it },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(8.dp)
+                                                .focusRequester(searchFocusRequester),
+                                            placeholder = { Text("Type to search...", color = Color.Gray, fontSize = 14.sp) },
+                                            leadingIcon = { Icon(Icons.Outlined.Search, null, tint = primaryGreen) },
+                                            singleLine = true,
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                unfocusedBorderColor = Color(0xFFE5EBE8),
+                                                focusedBorderColor = primaryGreen,
+                                                unfocusedTextColor = Color.Black,
+                                                focusedTextColor = Color.Black
+                                            )
+                                        )
+                                        
+                                        val filteredProducts = products.filter { it.first.contains(searchProductText, ignoreCase = true) }
+                                        
+                                        Box(modifier = Modifier.heightIn(max = 300.dp)) {
+                                            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                                filteredProducts.forEach { product ->
+                                                    DropdownMenuItem(
+                                                        text = { Text(product.first, color = textPrimary, fontWeight = FontWeight.Medium) },
+                                                        onClick = {
+                                                            selectedProductState.value = product
+                                                            expanded = false
+                                                            searchProductText = ""
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            // Custom Name
+                            CustomLabel("Or Enter Custom Name")
                             OutlinedTextField(
-                                value = searchProductText,
-                                onValueChange = { searchProductText = it },
-                                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                placeholder = { Text("Type to search...", color = Color.Gray, fontSize = 14.sp) },
-                                leadingIcon = { Icon(Icons.Outlined.Search, null, tint = primaryGreen) },
-                                singleLine = true,
+                                value = customNameState.value,
+                                onValueChange = { customNameState.value = it },
+                                placeholder = { Text("e.g. Grandma's Pickles", color = textSecondary.copy(alpha = 0.6f)) },
+                                
+                                shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = Color(0xFFF9FBFA),
+                                    focusedContainerColor = Color.White,
                                     unfocusedBorderColor = Color(0xFFE5EBE8),
                                     focusedBorderColor = primaryGreen,
-                                    unfocusedTextColor = textPrimary,
-                                    focusedTextColor = textPrimary
-                                )
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black
+                                ),
+                                modifier = Modifier.fillMaxWidth()
                             )
-                            
-                            val filteredProducts = products.filter { it.first.contains(searchProductText, ignoreCase = true) }
-                            
-                            filteredProducts.forEach { product ->
-                                DropdownMenuItem(
-                                    text = { Text(product.first, color = textPrimary, fontWeight = FontWeight.Medium) },
 
-                                    onClick = {
-                                        selectedProduct = product
-                                        expanded = false
-                                        searchProductText = ""
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            // Purchase Date
+                            CustomLabel("Purchase Date")
+                            OutlinedTextField(
+                                value = purchaseDateState.value,
+                                onValueChange = { },
+                                readOnly = true,
+                                placeholder = { Text("Select date", color = textSecondary.copy(alpha = 0.6f)) },
+
+                                trailingIcon = {
+                                    IconButton(onClick = { showDatePicker = true }) {
+                                        Icon(imageVector = Icons.Outlined.CalendarToday, contentDescription = null, tint = primaryGreen)
                                     }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = Color(0xFFF9FBFA),
+                                    focusedContainerColor = Color.White,
+                                    unfocusedBorderColor = Color(0xFFE5EBE8),
+                                    focusedBorderColor = primaryGreen,
+                                    disabledTextColor = Color.Black,
+                                    disabledBorderColor = Color(0xFFE5EBE8),
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black
+                                ),
+                                modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true },
+                                enabled = false
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            // Quantity
+                            CustomLabel("Quantity / Weight")
+                            OutlinedTextField(
+                                value = quantityState.value,
+                                onValueChange = { quantityState.value = it },
+                                placeholder = { Text("e.g. 2 kg, 5 items", color = textSecondary.copy(alpha = 0.6f)) },
+
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedContainerColor = Color(0xFFF9FBFA),
+                                    focusedContainerColor = Color.White,
+                                    unfocusedBorderColor = Color(0xFFE5EBE8),
+                                    focusedBorderColor = primaryGreen,
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Storage Type Selector
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            Text(
+                                text = "Storage Location",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textPrimary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                StorageChoiceCard(
+                                    title = "Fridge",
+                                    icon = Icons.Outlined.Kitchen,
+                                    isSelected = selectedStorageState.value == "Fridge",
+                                    onClick = { selectedStorageState.value = "Fridge" },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                StorageChoiceCard(
+                                    title = "Pantry",
+                                    icon = Icons.Outlined.HorizontalSplit,
+                                    isSelected = selectedStorageState.value == "Room Temperature",
+                                    onClick = { selectedStorageState.value = "Room Temperature" },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                StorageChoiceCard(
+                                    title = "Freezer",
+                                    icon = Icons.Outlined.AcUnit,
+                                    isSelected = selectedStorageState.value == "Freezer",
+                                    onClick = { selectedStorageState.value = "Freezer" },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                    // Custom Name
-                    CustomLabel("Or Enter Custom Name")
-                    OutlinedTextField(
-                        value = customName,
-                        onValueChange = { customName = it },
-                        placeholder = { Text("e.g. Grandma's Pickles", color = textSecondary.copy(alpha = 0.6f)) },
-
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF9FBFA),
-                            focusedContainerColor = Color.White,
-                            unfocusedBorderColor = Color(0xFFE5EBE8),
-                            focusedBorderColor = primaryGreen
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Purchase Date
-                    CustomLabel("Purchase Date")
-                    OutlinedTextField(
-                        value = purchaseDate,
-                        onValueChange = { },
-                        readOnly = true,
-                        placeholder = { Text("Select date", color = textSecondary.copy(alpha = 0.6f)) },
-
-                        trailingIcon = {
-                            IconButton(onClick = { showDatePicker = true }) {
-                                Icon(imageVector = Icons.Outlined.CalendarToday, contentDescription = null, tint = primaryGreen)
+                    // Action Button
+                    Button(
+                        onClick = {
+                            if (selectedProductState.value == null && customNameState.value.isBlank()) {
+                                Toast.makeText(context, "Please provide a name", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+                            if (purchaseDateState.value.isBlank()) {
+                                Toast.makeText(context, "Select purchase date", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+                            
+                            isLoading = true
+                            coroutineScope.launch {
+                                try {
+                                    val request = AddUnlabeledProductRequest(
+                                        user_id = sharedPrefs.getInt("user_id", -1),
+                                        category = category,
+                                        item_name = selectedProductState.value?.first ?: "",
+                                        custom_name = customNameState.value,
+                                        purchase_date = purchaseDateState.value,
+                                        quantity = quantityState.value,
+                                        storage_type = selectedStorageState.value
+                                    )
+                                    val response = RetrofitClient.apiService.addUnlabeledProduct(request)
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(context, "Product added successfully!", Toast.LENGTH_SHORT).show()
+                                        // Reset states on success
+                                        selectedProductState.value = null
+                                        customNameState.value = ""
+                                        purchaseDateState.value = ""
+                                        quantityState.value = ""
+                                        selectedStorageState.value = "Room Temperature"
+                                        onSaveClick()
+                                    } else {
+                                        val errorBody = response.errorBody()?.string()
+                                        val message = try {
+                                            val json = org.json.JSONObject(errorBody ?: "")
+                                            json.getString("message")
+                                        } catch (e: Exception) {
+                                            "Error: ${response.code()}"
+                                        }
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Connectivity Issue: ${e.message}", Toast.LENGTH_SHORT).show()
+                                } finally {
+                                    isLoading = false
+                                }
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF9FBFA),
-                            focusedContainerColor = Color.White,
-                            unfocusedBorderColor = Color(0xFFE5EBE8),
-                            focusedBorderColor = primaryGreen,
-                            disabledTextColor = textPrimary,
-                            disabledBorderColor = Color(0xFFE5EBE8)
-                        ),
-                        modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true },
-                        enabled = false
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Quantity
-                    CustomLabel("Quantity / Weight")
-                    OutlinedTextField(
-                        value = quantity,
-                        onValueChange = { quantity = it },
-                        placeholder = { Text("e.g. 2 kg, 5 items", color = textSecondary.copy(alpha = 0.6f)) },
-
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF9FBFA),
-                            focusedContainerColor = Color.White,
-                            unfocusedBorderColor = Color(0xFFE5EBE8),
-                            focusedBorderColor = primaryGreen
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Storage Type Selector
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = Color.White,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text(
-                        text = "Storage Location",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textPrimary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
+                        enabled = !isLoading
                     ) {
-                        StorageChoiceCard(
-                            title = "Fridge",
-                            icon = Icons.Outlined.Kitchen,
-                            isSelected = selectedStorage == "Fridge",
-                            onClick = { selectedStorage = "Fridge" },
-                            modifier = Modifier.weight(1f)
-                        )
-                        StorageChoiceCard(
-                            title = "Pantry",
-                            icon = Icons.Outlined.HorizontalSplit,
-                            isSelected = selectedStorage == "Room Temperature",
-                            onClick = { selectedStorage = "Room Temperature" },
-                            modifier = Modifier.weight(1f)
-                        )
-                        StorageChoiceCard(
-                            title = "Freezer",
-                            icon = Icons.Outlined.AcUnit,
-                            isSelected = selectedStorage == "Freezer",
-                            onClick = { selectedStorage = "Freezer" },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 3.dp)
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Outlined.Save, contentDescription = null, tint = Color.White)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Add to Shelf",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Action Button
-            Button(
-                onClick = {
-                    if (selectedProduct == null && customName.isBlank()) {
-                        Toast.makeText(context, "Please provide a name", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (purchaseDate.isBlank()) {
-                        Toast.makeText(context, "Select purchase date", Toast.LENGTH_SHORT).show()
-                        return@Button
+                        }
                     }
                     
-                    isLoading = true
-                    coroutineScope.launch {
-                        try {
-                            val request = AddUnlabeledProductRequest(
-                                user_id = sharedPrefs.getInt("user_id", -1),
-                                category = category,
-                                item_name = selectedProduct?.first ?: "",
-                                custom_name = customName,
-                                purchase_date = purchaseDate,
-                                quantity = quantity,
-                                storage_type = selectedStorage
-                            )
-                            val response = RetrofitClient.apiService.addUnlabeledProduct(request)
-                            if (response.isSuccessful) {
-                                Toast.makeText(context, "Product added successfully!", Toast.LENGTH_SHORT).show()
-                                onSaveClick()
-                            } else {
-                                val errorBody = response.errorBody()?.string()
-                                val message = try {
-                                    val json = org.json.JSONObject(errorBody ?: "")
-                                    json.getString("message")
-                                } catch (e: Exception) {
-                                    "Error: ${response.code()}"
-                                }
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Connectivity Issue: ${e.message}", Toast.LENGTH_SHORT).show()
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 3.dp)
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Save, contentDescription = null, tint = Color.White)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Add to Shelf",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
-            
-            Spacer(modifier = Modifier.height(40.dp))
         }
-    }
-}
 
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            if (millis > System.currentTimeMillis()) {
-                                Toast.makeText(context, "Purchase date cannot be in the future", Toast.LENGTH_SHORT).show()
-                            } else {
-                                val sdf = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-                                purchaseDate = sdf.format(java.util.Date(millis))
+            if (showDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                datePickerState.selectedDateMillis?.let { millis ->
+                                    if (millis > System.currentTimeMillis()) {
+                                        Toast.makeText(context, "Purchase date cannot be in the future", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                                        purchaseDateState.value = sdf.format(java.util.Date(millis))
+                                    }
+                                }
+                                showDatePicker = false
                             }
-                        }
-                        showDatePicker = false
+                        ) { Text("Confirm", fontWeight = FontWeight.Bold, color = primaryGreen) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePicker = false }) { Text("Cancel", color = Color.Gray) }
                     }
-                ) { Text("Confirm", fontWeight = FontWeight.Bold, color = primaryGreen) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel", color = Color.Gray) }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
             }
-        ) {
-            DatePicker(state = datePickerState)
         }
-    }
-}
 
 @Composable
 fun CustomLabel(text: String) {

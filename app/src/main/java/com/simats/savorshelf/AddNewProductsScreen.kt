@@ -53,22 +53,21 @@ fun AddNewProductsScreen(
 ) {
     val bgColor = Color(0xFFE9F0EC)
     val textPrimary = Color(0xFF141D1C)
-    val textSecondary = Color(0xFF5A6D66) // Darker grey for better visibility
+    val textSecondary = Color(0xFF5A6D66)
 
     val primaryGreen = Color(0xFF0D614E)
 
     val context = LocalContext.current
 
-    var frontImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var frontImageUri by remember { mutableStateOf<Uri?>(null) }
-    var expiryImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var expiryImageUri by remember { mutableStateOf<Uri?>(null) }
-
-    var detectedMfgDate by remember { mutableStateOf<String?>(null) }
-    var detectedLotNumber by remember { mutableStateOf<String?>(null) }
-
-    var detectedDate by remember { mutableStateOf<String?>(null) }
-    var isScanning by remember { mutableStateOf(false) }
+    // Local states
+    val frontImageBitmapState = remember { mutableStateOf<Bitmap?>(null) }
+    val frontImageUriState = remember { mutableStateOf<Uri?>(null) }
+    val expiryImageBitmapState = remember { mutableStateOf<Bitmap?>(null) }
+    val expiryImageUriState = remember { mutableStateOf<Uri?>(null) }
+    val detectedDateState = remember { mutableStateOf<String?>(null) }
+    val detectedMfgDateState = remember { mutableStateOf<String?>(null) }
+    val detectedLotNumberState = remember { mutableStateOf<String?>(null) }
+    val isScanningState = remember { mutableStateOf(false) }
 
     var activeImageSource by remember { mutableStateOf<ImageSourceType?>(null) }
     
@@ -80,8 +79,8 @@ fun AddNewProductsScreen(
     val coroutineScope = rememberCoroutineScope()
     fun performRemoteOcr(ctx: android.content.Context, uri: Uri?, bitmap: Bitmap?) {
         coroutineScope.launch {
-            isScanning = true
-            detectedDate = "Processing on server..."
+            isScanningState.value = true
+            detectedDateState.value = "Processing on server..."
             try {
                 val file = File(ctx.cacheDir, "scan_image.jpg")
                 val outputStream = FileOutputStream(file)
@@ -108,42 +107,42 @@ fun AddNewProductsScreen(
                     
                     // 1. Expiry Extraction
                     if (!serverExpiry.isNullOrBlank()) {
-                        detectedDate = serverExpiry
+                        detectedDateState.value = serverExpiry
                     } else if (fullText.isNotBlank()) {
                          val expRegex = Regex("""(?i)(?:EXP|USE BY|BEST BEFORE|ED)[\s:]*(\d{1,2}[/.-]\d{1,2}[/.-](?:\d{2}|\d{4})|\d{4}[/.-]\d{1,2}[/.-]\d{1,2})""")
                          val match = expRegex.find(fullText)
                          if (match != null) {
-                             detectedDate = match.groupValues[1]
+                             detectedDateState.value = match.groupValues[1]
                          } else {
                              val fallbackRegex = Regex("""\b(\d{1,2}[/.-]\d{1,2}[/.-](?:\d{2}|\d{4})|\d{4}[/.-]\d{1,2}[/.-]\d{1,2})\b""")
-                             detectedDate = fallbackRegex.find(fullText)?.value ?: "Date not clearly found. Please rescan."
+                             detectedDateState.value = fallbackRegex.find(fullText)?.value ?: "Date not clearly found. Please rescan."
                          }
                     } else {
-                        detectedDate = "Date not clearly found. Please rescan."
+                        detectedDateState.value = "Date not clearly found. Please rescan."
                     }
 
                     // 2. MFG Date Extraction
                     if (!serverMfg.isNullOrBlank()) {
-                        detectedMfgDate = serverMfg
+                        detectedMfgDateState.value = serverMfg
                     } else if (fullText.isNotBlank()) {
                         val mfgRegex = Regex("""(?i)(?:MFG|MFD|PKD|PKT|DATE OF PACK)[\s:]*(\d{1,2}[/.-]\d{1,2}[/.-](?:\d{2}|\d{4})|\d{4}[/.-]\d{1,2}[/.-]\d{1,2})""")
-                        detectedMfgDate = mfgRegex.find(fullText)?.groupValues?.get(1)
+                        detectedMfgDateState.value = mfgRegex.find(fullText)?.groupValues?.get(1)
                     }
 
                     // 3. Lot/Batch Extraction
                     if (!serverLot.isNullOrBlank()) {
-                        detectedLotNumber = serverLot
+                        detectedLotNumberState.value = serverLot
                     } else if (fullText.isNotBlank()) {
                         val lotRegex = Regex("""(?i)(?:LOT|BATCH|BN|B\.?NO|L\.)[\s:]*([A-Z0-9-]+)""")
-                        detectedLotNumber = lotRegex.find(fullText)?.groupValues?.get(1)
+                        detectedLotNumberState.value = lotRegex.find(fullText)?.groupValues?.get(1)
                     }
                 } else {
-                    detectedDate = "Server error: ${response.code()}"
+                    detectedDateState.value = "Server error: ${response.code()}"
                 }
             } catch (e: Exception) {
-                detectedDate = "Network error: ${e.message}"
+                detectedDateState.value = "Network error: ${e.message}"
             } finally {
-                isScanning = false
+                isScanningState.value = false
             }
         }
     }
@@ -170,13 +169,13 @@ fun AddNewProductsScreen(
         if (bitmap != null) {
             when (activeImageSource) {
                 ImageSourceType.FRONT -> {
-                    frontImageBitmap = bitmap
-                    frontImageUri = null // clear out uri if using bitmap
+                    frontImageBitmapState.value = bitmap
+                    frontImageUriState.value = null // clear out uri if using bitmap
                     saveToCache(context, "front_image.jpg", null, bitmap)
                 }
                 ImageSourceType.EXPIRY -> {
-                    expiryImageBitmap = bitmap
-                    expiryImageUri = null
+                    expiryImageBitmapState.value = bitmap
+                    expiryImageUriState.value = null
                     saveToCache(context, "expiry_image.jpg", null, bitmap)
                     // Immediately try OCR
                     performRemoteOcr(context, null, bitmap)
@@ -200,13 +199,13 @@ fun AddNewProductsScreen(
         if (uri != null) {
             when (activeImageSource) {
                 ImageSourceType.FRONT -> {
-                    frontImageUri = uri
-                    frontImageBitmap = null // clear out bitmap if using uri
+                    frontImageUriState.value = uri
+                    frontImageBitmapState.value = null // clear out bitmap if using uri
                     saveToCache(context, "front_image.jpg", uri, null)
                 }
                 ImageSourceType.EXPIRY -> {
-                    expiryImageUri = uri
-                    expiryImageBitmap = null
+                    expiryImageUriState.value = uri
+                    expiryImageBitmapState.value = null
                     saveToCache(context, "expiry_image.jpg", uri, null)
                     // Immediately try OCR
                     performRemoteOcr(context, uri, null)
@@ -229,21 +228,21 @@ fun AddNewProductsScreen(
     val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
 
     val galleryPermissionString = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-        Manifest.permission.READ_MEDIA_IMAGES
+        android.Manifest.permission.READ_MEDIA_IMAGES
     } else {
-        Manifest.permission.READ_EXTERNAL_STORAGE
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
     fun launchCameraFlow() {
         val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-            context, Manifest.permission.CAMERA
+            context, android.Manifest.permission.CAMERA
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         if (hasPermission) {
             takePictureLauncher.launch(null)
         } else {
             val hasSeenCameraDialog = sharedPrefs.getBoolean("has_seen_camera", false)
             if (hasSeenCameraDialog) {
-                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
             } else {
                 showCameraPermissionDialog = true
             }
@@ -271,7 +270,7 @@ fun AddNewProductsScreen(
             onAllowClick = {
                 showCameraPermissionDialog = false
                 sharedPrefs.edit().putBoolean("has_seen_camera", true).apply()
-                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
             },
             onDenyClick = { 
                 showCameraPermissionDialog = false 
@@ -300,8 +299,8 @@ fun AddNewProductsScreen(
         containerColor = bgColor,
         bottomBar = {
             // Only show Confirm & Continue if both images are captured (front + expiry)
-            val hasFrontImage = frontImageBitmap != null || frontImageUri != null
-            val hasExpiryImage = expiryImageBitmap != null || expiryImageUri != null
+            val hasFrontImage = frontImageBitmapState.value != null || frontImageUriState.value != null
+            val hasExpiryImage = expiryImageBitmapState.value != null || expiryImageUriState.value != null
             
             if (hasFrontImage && hasExpiryImage) {
                 Box(modifier = Modifier
@@ -310,7 +309,7 @@ fun AddNewProductsScreen(
                     .navigationBarsPadding()
                 ) {
                     Button(
-                        onClick = { onConfirmClick(detectedDate ?: "", detectedMfgDate ?: "", detectedLotNumber ?: "") },
+                        onClick = { onConfirmClick(detectedDateState.value ?: "", detectedMfgDateState.value ?: "", detectedLotNumberState.value ?: "") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
@@ -373,7 +372,7 @@ fun AddNewProductsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
             // How to scan Section
-            if (frontImageBitmap == null && frontImageUri == null && expiryImageBitmap == null && expiryImageUri == null) {
+            if (frontImageBitmapState.value == null && frontImageUriState.value == null && expiryImageBitmapState.value == null && expiryImageUriState.value == null) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = Color.White,
@@ -473,7 +472,7 @@ fun AddNewProductsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    val modelFront = frontImageBitmap ?: frontImageUri
+                    val modelFront = frontImageBitmapState.value ?: frontImageUriState.value
                     if (modelFront == null) {
                         UploadPlaceholder(
                             title = "Upload Product Photo",
@@ -571,7 +570,7 @@ fun AddNewProductsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    val modelExpiry = expiryImageBitmap ?: expiryImageUri
+                    val modelExpiry = expiryImageBitmapState.value ?: expiryImageUriState.value
                     if (modelExpiry == null) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -634,7 +633,7 @@ fun AddNewProductsScreen(
                             )
                         }
 
-                        if (detectedDate != null) {
+                        if (detectedDateState.value != null) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Surface(
                                 shape = RoundedCornerShape(12.dp),
@@ -663,24 +662,24 @@ fun AddNewProductsScreen(
                                     }
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Text(
-                                        text = "EXP: $detectedDate",
+                                        text = "EXP: ${detectedDateState.value}",
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = 18.sp,
                                         color = textPrimary
                                     )
-                                    if (!detectedMfgDate.isNullOrEmpty()) {
+                                    if (!detectedMfgDateState.value.isNullOrEmpty()) {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "MFG: $detectedMfgDate",
+                                            text = "MFG: ${detectedMfgDateState.value}",
                                             fontSize = 14.sp,
                                             color = textSecondary,
                                             fontWeight = FontWeight.Medium
                                         )
                                     }
-                                    if (!detectedLotNumber.isNullOrEmpty()) {
+                                    if (!detectedLotNumberState.value.isNullOrEmpty()) {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Lot: $detectedLotNumber",
+                                            text = "Lot: ${detectedLotNumberState.value}",
                                             fontSize = 14.sp,
                                             color = textSecondary,
                                             fontWeight = FontWeight.Medium
@@ -711,7 +710,7 @@ fun AddNewProductsScreen(
             }
             
             // Example Images Section
-            if (frontImageBitmap == null && frontImageUri == null && expiryImageBitmap == null && expiryImageUri == null) {
+            if (frontImageBitmapState.value == null && frontImageUriState.value == null && expiryImageBitmapState.value == null && expiryImageUriState.value == null) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {

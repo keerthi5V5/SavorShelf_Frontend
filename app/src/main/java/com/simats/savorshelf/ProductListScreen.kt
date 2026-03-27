@@ -213,7 +213,9 @@ fun ProductListScreen(
                         unfocusedBorderColor = Color(0xFFE5EBE8),
                         focusedBorderColor = primaryGreen,
                         unfocusedContainerColor = Color(0xFFF9FAF9),
-                        focusedContainerColor = Color.White
+                        focusedContainerColor = Color.White,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                     singleLine = true
                 )

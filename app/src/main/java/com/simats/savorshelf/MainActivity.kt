@@ -556,7 +556,7 @@ fun MainScreen() {
                 onBackClick = { 
                     if (backStack.size >= 2) currentScreen.intValue = backStack[backStack.size - 2] 
                     else currentScreen.intValue = 16 
-                }, 
+                },
                 onConfirmClick = { date, mfg, lot ->
                     scannedExpiryDate.value = date
                     scannedMfgDate.value = mfg
@@ -571,6 +571,7 @@ fun MainScreen() {
                 detectedMfgDate = scannedMfgDate.value,
                 detectedLotNumber = scannedLotNumber.value,
                 onBackClick = { currentScreen.intValue = 21 },
+                onManualEntryClick = { currentScreen.intValue = 23 },
                 onSaveClick = { productName, category, expiryDate, mfgDate, batchNumber, storageType, quantity ->
                     coroutineScope.launch {
                         try {
@@ -620,8 +621,7 @@ fun MainScreen() {
                             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
-                },
-                onManualEntryClick = { currentScreen.intValue = 23 }
+                }
             )
         }
         23 -> {

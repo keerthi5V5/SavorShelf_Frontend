@@ -153,8 +153,8 @@ fun ChangePasswordScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE5EBE8),
                             focusedBorderColor = primaryGreen,
-                            focusedTextColor = textPrimary,
-                            unfocusedTextColor = textPrimary
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         ),
                         visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -180,8 +180,8 @@ fun ChangePasswordScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE5EBE8),
                             focusedBorderColor = primaryGreen,
-                            focusedTextColor = textPrimary,
-                            unfocusedTextColor = textPrimary
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         ),
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -209,8 +209,8 @@ fun ChangePasswordScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE5EBE8),
                             focusedBorderColor = primaryGreen,
-                            focusedTextColor = textPrimary,
-                            unfocusedTextColor = textPrimary
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         ),
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {

@@ -243,77 +243,110 @@ fun GetStartedScreen(
             .background(backgroundColor),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1.1f)
+    ) {
         NetworkImage(
             model = imageAssetUrl,
             contentDescription = "Pantry background",
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.3f),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-
-        Column(
+        
+        // Gradient merge overlay
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                .height(100.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            backgroundColor.copy(alpha = 0.5f),
+                            backgroundColor
+                        )
+                    )
+                )
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(
                     text = "Freshness at your",
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp,
+                    fontSize = 32.sp,
                     color = titleDarkGreen,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    letterSpacing = (-0.5).sp
                 )
                 
                 Text(
                     text = "Fingertips",
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 32.sp,
                     color = coralColor,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    letterSpacing = (-0.5).sp
                 )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Smart pantry management for\nthe modern home.",
                 fontFamily = FontFamily.SansSerif,
                 fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 color = textBodyColor,
                 textAlign = TextAlign.Center,
-                lineHeight = 22.sp
+                lineHeight = 24.sp
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = onGetStartedClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(60.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = titleDarkGreen),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(18.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Get Started",
                         color = Color.White,
-                        fontSize = 16.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "→",
                         color = Color.White,
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -323,49 +356,51 @@ fun GetStartedScreen(
                 Row(
                     modifier = Modifier
                         .background(color = pillBackground, shape = RoundedCornerShape(50))
-                        .border(1.dp, coralColor.copy(alpha = 0.2f), RoundedCornerShape(50))
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                        .border(1.dp, coralColor.copy(alpha = 0.3f), RoundedCornerShape(50))
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = "Alerts",
                         tint = coralColor,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Expiry Alerts",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = titleDarkGreen,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(20.dp))
                 
                 Row(
                     modifier = Modifier
                         .background(color = pillBackground, shape = RoundedCornerShape(50))
-                        .border(1.dp, coralColor.copy(alpha = 0.2f), RoundedCornerShape(50))
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                        .border(1.dp, coralColor.copy(alpha = 0.3f), RoundedCornerShape(50))
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.ShoppingCart,
                         contentDescription = "Lists",
                         tint = coralColor,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Smart Lists",
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = titleDarkGreen,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             val signInText = buildAnnotatedString {
                 withStyle(style = SpanStyle(color = textBodyColor)) {
@@ -378,11 +413,13 @@ fun GetStartedScreen(
 
             Text(
                 text = signInText,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 modifier = Modifier
                     .clickable { onSignInClick() }
-                    .padding(bottom = 16.dp)
+                    .padding(vertical = 8.dp)
             )
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

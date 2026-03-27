@@ -249,7 +249,9 @@ fun ManualEntryScreen(
                                 focusedContainerColor = Color.White,
                                 disabledContainerColor = Color(0xFFF9FAF9),
                                 disabledBorderColor = Color(0xFFE5EBE8),
-                                disabledTextColor = textPrimary
+                                disabledTextColor = Color.Black,
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black
                             ),
                             trailingIcon = {
                                 IconButton(onClick = { datePickerDialog.show() }) {

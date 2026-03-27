@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -166,9 +167,9 @@ fun FreshnessScreen(
                     .padding(horizontal = 20.dp, vertical = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                ReportCard(title = "Fresh", count = freshCount, color = Color(0xFF00C853), modifier = Modifier.weight(1f))
-                ReportCard(title = "Use Soon", count = useSoonCount, color = Color(0xFFFF6D00), modifier = Modifier.weight(1f))
-                ReportCard(title = "Expired", count = expiredCount, color = Color(0xFFEF4444), modifier = Modifier.weight(1f))
+                ReportCard(title = "Fresh", count = freshCount, baseColor = Color(0xFF00C853), modifier = Modifier.weight(1f))
+                ReportCard(title = "Use Soon", count = useSoonCount, baseColor = Color(0xFFFF6D00), modifier = Modifier.weight(1f))
+                ReportCard(title = "Expired", count = expiredCount, baseColor = Color(0xFFEF4444), modifier = Modifier.weight(1f))
             }
             
             // Weekly Waste Impact Tracker
@@ -295,30 +296,52 @@ fun FreshnessScreen(
 }
 
 @Composable
-fun ReportCard(title: String, count: Int, color: Color, modifier: Modifier = Modifier) {
+fun ReportCard(title: String, count: Int, baseColor: Color, modifier: Modifier = Modifier) {
+    val gradient = Brush.linearGradient(
+        colors = listOf(baseColor, baseColor.copy(alpha = 0.85f))
+    )
+    
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = color,
-        modifier = modifier.aspectRatio(1f)
+        shadowElevation = 4.dp,
+        color = Color.Transparent,
+        modifier = modifier.height(85.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .background(gradient)
+                .fillMaxSize()
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
-            Text(
-                text = count.toString(),
-                color = Color.White,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.25f),
+                    modifier = Modifier.size(42.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = count.toString(),
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 16.sp,
+                    letterSpacing = 0.5.sp
+                )
+            }
         }
     }
 }

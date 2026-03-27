@@ -40,15 +40,14 @@ fun ConfirmProductScreen(
     val primaryGreen = Color(0xFF0D614E)
     val accentGreen = Color(0xFF1CB089)
     val textPrimary = Color(0xFF141D1C)
-    val textSecondary = Color(0xFF5A6D66) // Darker grey for better visibility
+    val textSecondary = Color(0xFF5A6D66)
 
-    
+    // Local states (will reset on navigation)
     var productName by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var manufactureDate by remember { mutableStateOf(detectedMfgDate) }
     var batchNumber by remember { mutableStateOf(detectedLotNumber) }
     var quantity by remember { mutableStateOf("") }
-    
     var selectedStorage by remember { mutableStateOf("Room Temperature") }
     
     val context = LocalContext.current
@@ -241,9 +240,11 @@ fun ConfirmProductScreen(
                         shape = RoundedCornerShape(12.dp),
                         enabled = false,
                         colors = OutlinedTextFieldDefaults.colors(
-                            disabledTextColor = textPrimary,
+                            disabledTextColor = Color.Black,
                             disabledBorderColor = Color(0xFFE5EBE8),
-                            disabledContainerColor = Color(0xFFF9FBFA)
+                            disabledContainerColor = Color(0xFFF9FBFA),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         ),
                         trailingIcon = {
                             Icon(Icons.Outlined.CalendarToday, null, tint = primaryGreen)
@@ -326,7 +327,9 @@ fun LabeledInput(label: String, value: String, onValueChange: (String) -> Unit, 
             unfocusedContainerColor = Color(0xFFF9FBFA),
             focusedContainerColor = Color.White,
             unfocusedBorderColor = Color(0xFFE5EBE8),
-            focusedBorderColor = Color(0xFF0D614E)
+            focusedBorderColor = Color(0xFF0D614E),
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black
         ),
         singleLine = true
     )

@@ -214,8 +214,8 @@ fun EditProfileScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE5EBE8),
                             focusedBorderColor = primaryGreen,
-                            focusedTextColor = textPrimary,
-                            unfocusedTextColor = textPrimary
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         ),
                         trailingIcon = { Icon(Icons.Outlined.Person, contentDescription = null, tint = Color(0xFFA1AFAB)) },
                         singleLine = true
@@ -235,8 +235,8 @@ fun EditProfileScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             disabledContainerColor = Color(0xFFF9FAF9),
                             disabledBorderColor = Color(0xFFE5EBE8),
-                            disabledTextColor = textPrimary,
-                            disabledTrailingIconColor = textPrimary
+                            disabledTextColor = Color.Black,
+                            disabledTrailingIconColor = Color.Black
                         ),
                         trailingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
                         singleLine = true
