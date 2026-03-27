@@ -229,7 +229,7 @@ fun GetStartedScreen(
     onGetStartedClick: () -> Unit = {},
     onSignInClick: () -> Unit = {}
 ) {
-    val backgroundColor = Color.White
+    val backgroundColor = com.simats.savorshelf.ui.theme.MintBackground
     val titleDarkGreen = Color(0xFF0D614E)
     val coralColor = Color(0xFFD85D44) // Slightly darker coral for better contrast
     val textBodyColor = Color(0xFF5A6D66) // Darker grey
@@ -246,7 +246,7 @@ fun GetStartedScreen(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .weight(1.1f)
+            .weight(1.4f)
     ) {
         NetworkImage(
             model = imageAssetUrl,

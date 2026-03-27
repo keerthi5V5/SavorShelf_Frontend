@@ -50,7 +50,7 @@ fun CreateAccountScreen(
 ) {
     val context = LocalContext.current
     val sharedPrefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    val topBackgroundColor = Color(0xFFF1F5F3) // Light greenish background
+    val topBackgroundColor = com.simats.savorshelf.ui.theme.MintBackground
     val darkGreenColor = Color(0xFF1B4E40)
     val lightGreyTextColor = Color(0xFF5A6D66) // Darker grey for better contrast
     val placeholderColor = Color(0xFF8E9B96) // Slightly lighter but still visible
@@ -113,9 +113,12 @@ fun CreateAccountScreen(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-            color = Color.White
+                .weight(1f)
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp),
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 8.dp
         ) {
             Column(
                 modifier = Modifier

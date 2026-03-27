@@ -123,7 +123,7 @@ fun SplashScreenContent(onTimeout: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(com.simats.savorshelf.ui.theme.MintBackground)
             .alpha(alphaAnim)
     ) {
         Image(
@@ -133,33 +133,42 @@ fun SplashScreenContent(onTimeout: () -> Unit) {
             contentScale = ContentScale.FillBounds
         )
         
-        // Animated Dots and Powered by Text
-        Column(
+        // Attribution at bottom as requested
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 40.dp),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                DotAnimation(delay = 0)
-                DotAnimation(delay = 200)
-                DotAnimation(delay = 400)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Animated Dots
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    DotAnimation(delay = 0)
+                    DotAnimation(delay = 200)
+                    DotAnimation(delay = 400)
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Text(
+                    text = "Powered by",
+                    color = Color(0xFF052A20),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp
+                )
+                Text(
+                    text = "SIMATS Engineering",
+                    color = Color(0xFF0D614E),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.5.sp
+                )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                text = "Powered by SIMATS Engineering",
-                color = Color(0xFF0D614E).copy(alpha = 0.8f),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 0.8.sp,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
@@ -186,6 +195,9 @@ fun DotAnimation(delay: Int) {
 }
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
+    val sharedPrefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+    
     val backStack = remember { mutableStateListOf(1) }
     val currentScreen = remember {
         object {
@@ -225,8 +237,6 @@ fun MainScreen() {
     val scannedMfgDate = remember { mutableStateOf("") }
     val scannedLotNumber = remember { mutableStateOf("") }
 
-    val context = LocalContext.current
-    val sharedPrefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
     var backPressTime by remember { mutableLongStateOf(0L) }
 
     BackHandler(enabled = true) {
@@ -268,7 +278,7 @@ fun MainScreen() {
                 }
             }
 
-            val currentBg = if (pagerState.currentPage < 2) Color(0xFFF4F4F0) else Color.White
+            val currentBg = com.simats.savorshelf.ui.theme.MintBackground
 
             Column(modifier = Modifier.fillMaxSize().background(currentBg)) {
                 Box(modifier = Modifier.weight(1f)) {

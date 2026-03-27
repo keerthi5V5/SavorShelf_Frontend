@@ -1,5 +1,6 @@
 package com.simats.savorshelf
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,17 +46,19 @@ fun SubscriptionScreen(
     val context = LocalContext.current
     val activity = context as? android.app.Activity
     
-    // Premium Color Palette
+    val primaryGreen = Color(0xFF0D614E)
+    val mintBg = Color(0xFFDFF6E9) // Fresh Mint Green
+    val textPrimary = Color(0xFF141D1C)
+    val textSecondary = Color(0xFF4A5D57)
+
     val bgGradient = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFF0F172A), // Deep Navy
-            Color(0xFF020617)  // Deeper Navy/Black
+            mintBg,
+            Color.White
         )
     )
-    val cardBg = Color(0xFF1E293B).copy(alpha = 0.7f)
-    val goldColor = Color(0xFFFFD700)
-    val lightBlue = Color(0xFF38BDF8)
-    val greenCheck = Color(0xFF22C55E)
+    val goldColor = Color(0xFFD4AF37) // A slightly darker gold for white bg
+    val lightBlue = Color(0xFF0284C7)
     
     val logoUrl = "https://image2url.com/r2/default/images/1772164873232-c166ef95-c445-4f7d-9852-4f48d008db1c.png"
 
@@ -116,21 +119,20 @@ fun SubscriptionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Logo Section
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(80.dp)
                     .shadow(
                         elevation = 20.dp,
-                        shape = RoundedCornerShape(24.dp),
+                        shape = RoundedCornerShape(20.dp),
                         spotColor = Color.White.copy(alpha = 0.1f)
                      )
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(20.dp))
                     .background(Color.White)
-                    .padding(12.dp)
             ) {
                 NetworkImage(
                     model = logoUrl,
@@ -146,36 +148,38 @@ fun SubscriptionScreen(
                 text = "SavorShelf",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
+                color = textPrimary,
                 letterSpacing = (-1).sp
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Premium Badge
             Surface(
-                color = Color.Transparent,
-                shape = RoundedCornerShape(4.dp),
-                border = null
+                color = goldColor.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(8.dp),
+                border = null,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = "PREMIUM",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Black,
                     color = goldColor,
-                    letterSpacing = 2.sp
+                    letterSpacing = 1.5.sp,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Description
             Text(
                 text = "Unlock smart features designed to track\nexpiry and reduce food waste effectively",
-                fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 15.sp,
+                color = textSecondary,
                 textAlign = TextAlign.Center,
-                lineHeight = 24.sp,
+                lineHeight = 22.sp,
                 fontWeight = FontWeight.Medium
             )
 
@@ -217,7 +221,39 @@ fun SubscriptionScreen(
             )
 
             Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Pricing Card (Medium Mint Green)
+            Surface(
+                color = Color(0xFFB9E8CE),
+                shape = RoundedCornerShape(16.dp),
+                shadowElevation = 4.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Premium Plan",
+                        color = primaryGreen,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+                    Text(
+                        text = "₹99 / month",
+                        color = primaryGreen,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // CTA Button
             Button(
@@ -230,14 +266,14 @@ fun SubscriptionScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
+                    .height(56.dp)
                     .shadow(
-                        elevation = 12.dp,
-                        shape = RoundedCornerShape(32.dp),
-                        spotColor = Color.White.copy(alpha = 0.2f)
+                        elevation = 6.dp,
+                        shape = RoundedCornerShape(28.dp),
+                        spotColor = primaryGreen.copy(alpha = 0.3f)
                     ),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                shape = RoundedCornerShape(32.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
+                shape = RoundedCornerShape(28.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -245,16 +281,16 @@ fun SubscriptionScreen(
                 ) {
                     Text(
                         text = "START PREMIUM",
-                        color = Color.Black,
-                        fontSize = 18.sp,
+                        color = Color.White,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
+                        letterSpacing = 0.8.sp
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Arrow",
-                        tint = Color.Black,
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -264,18 +300,18 @@ fun SubscriptionScreen(
 
             // Footer Links
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "By continuing, you agree to our ",
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.4f)
+                    color = textSecondary.copy(alpha = 0.6f)
                 )
                 Text(
                     text = "Terms & Privacy Policy",
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = primaryGreen,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable { /* Add navigation */ }
                 )
@@ -283,16 +319,30 @@ fun SubscriptionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Dismiss
-            Text(
-                text = "Maybe later",
-                fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.5f),
-                fontWeight = FontWeight.Medium,
+            // Dismiss Card
+            Surface(
                 modifier = Modifier
-                    .clickable { onBackClick() }
-                    .padding(8.dp)
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp)
+                    .height(48.dp)
+                    .clickable { onBackClick() },
+                shape = RoundedCornerShape(24.dp),
+                color = primaryGreen.copy(alpha = 0.05f),
+                border = BorderStroke(1.dp, primaryGreen.copy(alpha = 0.2f))
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Maybe later",
+                        fontSize = 16.sp,
+                        color = primaryGreen,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+            }
         }
     }
 }
@@ -423,8 +473,9 @@ fun FeatureItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp),
-        color = Color(0xFF1E293B).copy(alpha = 0.4f),
+        color = Color.White,
         shape = RoundedCornerShape(20.dp),
+        shadowElevation = 2.dp,
         border = null
     ) {
         Row(
@@ -436,7 +487,7 @@ fun FeatureItem(
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .background(iconTint.copy(alpha = 0.15f), CircleShape),
+                    .background(iconTint.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -454,12 +505,12 @@ fun FeatureItem(
                     text = title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color(0xFF141D1C)
                 )
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color(0xFF5A6D66),
                     fontWeight = FontWeight.Medium
                 )
             }

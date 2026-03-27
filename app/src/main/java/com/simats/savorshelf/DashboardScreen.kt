@@ -113,7 +113,7 @@ fun DashboardScreen(
         }
     }
 
-    val bgColor = Color(0xFFF6F8F7)
+    val bgColor = com.simats.savorshelf.ui.theme.MintBackground
     val primaryGreen = Color(0xFF0D614E)
     val textPrimary = Color(0xFF141D1C)
     val textSecondary = Color(0xFF5A6D66) // Darker grey for better visibility
