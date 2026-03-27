@@ -11,9 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.FlashOn
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,12 +28,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
+import com.android.billingclient.api.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 @Composable
 fun SubscriptionScreen(
     onBackClick: () -> Unit = {},
     onStartPremiumClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
+    
     // Premium Color Palette
     val bgGradient = Brush.verticalGradient(
         colors = listOf(
@@ -47,6 +58,52 @@ fun SubscriptionScreen(
     val greenCheck = Color(0xFF22C55E)
     
     val logoUrl = "https://image2url.com/r2/default/images/1772164873232-c166ef95-c445-4f7d-9852-4f48d008db1c.png"
+
+    // Billing Logic State
+    var productDetailsState by remember { mutableStateOf<ProductDetails?>(null) }
+    var billingClientState by remember { mutableStateOf<BillingClient?>(null) }
+
+    // Initialize BillingClient
+    DisposableEffect(Unit) {
+        logDebugInformation(context)
+        
+        val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
+            Log.d("SubscriptionScreen", "onPurchasesUpdated: ${billingResult.responseCode}")
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+                for (purchase in purchases) {
+                    handlePurchase(purchase, billingClientState, context, onStartPremiumClick)
+                }
+            } else {
+                handleBillingError(billingResult, context)
+            }
+        }
+
+        val client = BillingClient.newBuilder(context)
+            .setListener(purchasesUpdatedListener)
+            .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+            .build()
+        
+        billingClientState = client
+
+        client.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    querySubscriptionDetails(client) { details ->
+                        productDetailsState = details
+                    }
+                } else {
+                    Log.e("SubscriptionScreen", "Billing setup failed: ${billingResult.debugMessage}")
+                }
+            }
+            override fun onBillingServiceDisconnected() {
+                Log.d("SubscriptionScreen", "Billing service disconnected")
+            }
+        })
+
+        onDispose {
+            client.endConnection()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -70,7 +127,7 @@ fun SubscriptionScreen(
                         elevation = 20.dp,
                         shape = RoundedCornerShape(24.dp),
                         spotColor = Color.White.copy(alpha = 0.1f)
-                    )
+                     )
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color.White)
                     .padding(12.dp)
@@ -164,7 +221,13 @@ fun SubscriptionScreen(
 
             // CTA Button
             Button(
-                onClick = onStartPremiumClick,
+                onClick = {
+                    if (activity != null && billingClientState != null && productDetailsState != null) {
+                        launchSubscriptionFlow(activity, billingClientState!!, productDetailsState!!)
+                    } else {
+                        Toast.makeText(context, "Subscription not available. Please try again.", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)
@@ -189,7 +252,7 @@ fun SubscriptionScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowRight,
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Arrow",
                         tint = Color.Black,
                         modifier = Modifier.size(24.dp)
@@ -230,6 +293,121 @@ fun SubscriptionScreen(
                     .clickable { onBackClick() }
                     .padding(8.dp)
             )
+        }
+    }
+}
+
+private const val SUBSCRIPTION_SKU = "univault_premium_subscription"
+private const val TEST_SUBSCRIPTION_SKU = "android.test.purchased"
+
+private fun logDebugInformation(context: Context) {
+    Log.d("SubscriptionScreen", "=== DEBUG INFORMATION ===")
+    Log.d("SubscriptionScreen", "Package name: ${context.packageName}")
+    try {
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        Log.d("SubscriptionScreen", "Version code: ${packageInfo.longVersionCode}")
+        Log.d("SubscriptionScreen", "Version name: ${packageInfo.versionName}")
+    } catch (e: Exception) {
+        Log.w("SubscriptionScreen", "Unable to get package info: ${e.message}")
+    }
+    Log.d("SubscriptionScreen", "Product ID: $SUBSCRIPTION_SKU")
+    Log.d("SubscriptionScreen", "=========================")
+}
+
+private fun querySubscriptionDetails(client: BillingClient, onResult: (ProductDetails?) -> Unit) {
+    val productList = listOf(
+        QueryProductDetailsParams.Product.newBuilder()
+            .setProductId(SUBSCRIPTION_SKU)
+            .setProductType(BillingClient.ProductType.SUBS)
+            .build()
+    )
+    val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
+
+    client.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList.isNotEmpty()) {
+            onResult(productDetailsList[0])
+        } else {
+            // Try test product
+            val testProductList = listOf(
+                QueryProductDetailsParams.Product.newBuilder()
+                    .setProductId(TEST_SUBSCRIPTION_SKU)
+                    .setProductType(BillingClient.ProductType.INAPP)
+                    .build()
+            )
+            val testParams = QueryProductDetailsParams.newBuilder().setProductList(testProductList).build()
+            client.queryProductDetailsAsync(testParams) { testResult, testList ->
+                if (testResult.responseCode == BillingClient.BillingResponseCode.OK && testList.isNotEmpty()) {
+                    onResult(testList[0])
+                } else {
+                    onResult(null)
+                }
+            }
+        }
+    }
+}
+
+private fun launchSubscriptionFlow(activity: android.app.Activity, client: BillingClient, details: ProductDetails) {
+    val productDetailsParamsList = if (details.productType == BillingClient.ProductType.SUBS) {
+        val selectedOffer = details.subscriptionOfferDetails?.getOrNull(0) ?: return
+        listOf(
+            BillingFlowParams.ProductDetailsParams.newBuilder()
+                .setProductDetails(details)
+                .setOfferToken(selectedOffer.offerToken)
+                .build()
+        )
+    } else {
+        listOf(
+            BillingFlowParams.ProductDetailsParams.newBuilder()
+                .setProductDetails(details)
+                .build()
+        )
+    }
+
+    val billingFlowParams = BillingFlowParams.newBuilder()
+        .setProductDetailsParamsList(productDetailsParamsList)
+        .build()
+
+    client.launchBillingFlow(activity, billingFlowParams)
+}
+
+private fun handlePurchase(purchase: Purchase, client: BillingClient?, context: Context, onSuccess: () -> Unit) {
+    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+        if (!purchase.isAcknowledged && client != null) {
+            val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
+                .setPurchaseToken(purchase.purchaseToken)
+                .build()
+            client.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    completeSubscription(context, onSuccess)
+                }
+            }
+        } else {
+            completeSubscription(context, onSuccess)
+        }
+    }
+}
+
+private fun completeSubscription(context: Context, onSuccess: () -> Unit) {
+    Toast.makeText(context, "Subscription successful! Welcome to Premium!", Toast.LENGTH_LONG).show()
+    val sharedPref = context.getSharedPreferences("subscription_prefs", Context.MODE_PRIVATE)
+    sharedPref.edit().apply {
+        putBoolean("is_premium_user", true)
+        putLong("subscription_time", System.currentTimeMillis())
+        apply()
+    }
+    onSuccess()
+}
+
+private fun handleBillingError(billingResult: BillingResult, context: Context) {
+    when (billingResult.responseCode) {
+        BillingClient.BillingResponseCode.USER_CANCELED -> {
+            Toast.makeText(context, "Purchase canceled", Toast.LENGTH_SHORT).show()
+        }
+        BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+            Toast.makeText(context, "You already have an active subscription", Toast.LENGTH_SHORT).show()
+        }
+        else -> {
+            Toast.makeText(context, "Purchase failed: ${billingResult.debugMessage}", Toast.LENGTH_LONG).show()
         }
     }
 }
