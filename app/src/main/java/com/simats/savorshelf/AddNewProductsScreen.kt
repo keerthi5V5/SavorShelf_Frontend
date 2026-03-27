@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -73,7 +74,6 @@ fun AddNewProductsScreen(
     
     // Permission Dialogs
     var showCameraPermissionDialog by remember { mutableStateOf(false) }
-    var showGalleryConfirmDialog by remember { mutableStateOf(false) }
     
     // Recognizing Text
     val coroutineScope = rememberCoroutineScope()
@@ -194,8 +194,8 @@ fun AddNewProductsScreen(
         }
     }
 
-    // Gallery Launcher
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    // Gallery Launcher (Photo Picker)
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             when (activeImageSource) {
                 ImageSourceType.FRONT -> {
@@ -212,26 +212,13 @@ fun AddNewProductsScreen(
                 }
                 null -> {}
             }
-            showGalleryConfirmDialog = false
         }
     }
 
-    // Explicit Gallery Permission Launcher
-    val galleryPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-            galleryLauncher.launch("image/*")
-        } else {
-            Toast.makeText(context, "Gallery permission denied.", Toast.LENGTH_SHORT).show()
-        }
-    }
+    // Explicit Gallery Permission Launcher (No longer needed with Photo Picker)
 
     val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
 
-    val galleryPermissionString = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-        android.Manifest.permission.READ_MEDIA_IMAGES
-    } else {
-        android.Manifest.permission.READ_EXTERNAL_STORAGE
-    }
 
     fun launchCameraFlow() {
         val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
@@ -250,19 +237,7 @@ fun AddNewProductsScreen(
     }
 
     fun launchGalleryFlow() {
-        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-            context, galleryPermissionString
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        if (hasPermission) {
-            galleryLauncher.launch("image/*")
-        } else {
-            val hasSeenGalleryDialog = sharedPrefs.getBoolean("has_seen_gallery", false)
-            if (hasSeenGalleryDialog) {
-                galleryPermissionLauncher.launch(galleryPermissionString)
-            } else {
-                showGalleryConfirmDialog = true
-            }
-        }
+        galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     if (showCameraPermissionDialog) {
@@ -280,20 +255,6 @@ fun AddNewProductsScreen(
         return
     }
 
-    if (showGalleryConfirmDialog) {
-        GalleryPermissionScreen(
-            onAllowClick = {
-                showGalleryConfirmDialog = false
-                sharedPrefs.edit().putBoolean("has_seen_gallery", true).apply()
-                galleryPermissionLauncher.launch(galleryPermissionString)
-            },
-            onDenyClick = { 
-                showGalleryConfirmDialog = false 
-                sharedPrefs.edit().putBoolean("has_seen_gallery", true).apply()
-            }
-        )
-        return
-    }
 
     Scaffold(
         containerColor = bgColor,

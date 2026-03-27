@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.simats.savorshelf"
-        minSdk = 26
+        minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.exifinterface)
-    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation(libs.mlkit.text.recognition)
     implementation(libs.coil.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -62,8 +62,8 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.android.billing.ktx)
 }
